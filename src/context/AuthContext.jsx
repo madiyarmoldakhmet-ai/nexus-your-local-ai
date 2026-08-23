@@ -11,11 +11,11 @@ export const AuthProvider = ({ children }) => {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
       setInitializing(false);
     });
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
   const logout = async () => {
