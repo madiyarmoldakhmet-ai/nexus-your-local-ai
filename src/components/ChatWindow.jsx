@@ -44,7 +44,7 @@ const ChatWindow = () => {
                 wordBreak: 'break-word',
               }}
             >
-              {msg.text}
+              {msg.content}
             </span>
           </div>
         ))}
