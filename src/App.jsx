@@ -280,7 +280,7 @@ function App() {
           </nav>
         </footer>
 
-        {chatOpen && (
+        {user && user.emailVerified && chatOpen && (
           <div className="chat-workspace" role="dialog" aria-modal="true" aria-label="Nexus local chat">
             <header className="chat-nav">
               <div className="brand">
