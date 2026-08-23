@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, Copy, Menu, Moon, Search, Send, Sun, X } from 'lucide-react'
 import './App.css'
-import { AuthProvider, useAuth } from './context/AuthContext'
+import { useAuth } from './context/AuthContext'
 import AuthModal from './components/AuthModal'
 
 const knownModels = ['llava:latest', 'qwen2.5:14b', 'gpt-oss:20b', 'llama3.2:latest', 'qwen2.5-coder:14b', 'qwen3:8b', 'llama3.1:8b', 'qwen2.5-coder:7b']
@@ -33,6 +33,7 @@ function demoReply(content, model) {
 }
 
 function App() {
+  const { user } = useAuth();
   const [models, setModels] = useState(knownModels.map((name) => ({ name })))
   const [online, setOnline] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
@@ -108,6 +109,7 @@ function App() {
   }
 
   return (
+    {!user && <AuthModal />}
     <div className="site-shell">
       <header className="primary-nav">
         <a className="brand" href="#top" aria-label="Nexus home">
