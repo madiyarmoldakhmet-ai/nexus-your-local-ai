@@ -279,11 +279,7 @@ function App() {
             <a href="https://github.com/madiyarmoldakhmet-ai/nexus-your-local-ai">GitHub</a>
             <a href="#top">Privacy</a>
           </nav>
-        </        {user && user.emailVerified && chatOpen && (
-          <ChatProvider>
-            <ChatShell />
-          </ChatProvider>
-        )}>
+        {user && user.emailVerified && chatOpen && (<ChatProvider><ChatShell /></ChatProvider>)}>
         )}
       </div>
     </>
