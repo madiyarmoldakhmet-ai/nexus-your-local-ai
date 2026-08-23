@@ -279,77 +279,11 @@ function App() {
             <a href="https://github.com/madiyarmoldakhmet-ai/nexus-your-local-ai">GitHub</a>
             <a href="#top">Privacy</a>
           </nav>
-        </footer>
-
-        {user && user.emailVerified && chatOpen && (
-          <div className="chat-workspace" role="dialog" aria-modal="true" aria-label="Nexus local chat">
-            <header className="chat-nav">
-              <div className="brand">
-                <LlamaMark small />
-                <span>nexus</span>
-                <span className={`chat-status ${online ? 'is-online' : ''}`}><i></i>{online ? 'local' : 'preview'}</span>
-              </div>
-              <div className="chat-nav-tools">
-                <label className="model-pill">
-                  <select value={chatModel} onChange={(event) => setChatModel(event.target.value)} aria-label="Select model">
-                    {models.map((model) => <option key={model.name}>{model.name}</option>)}
-                  </select>
-                </label>
-                <button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle dark mode">
-                  {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                </button>
-                <button className="ghost-pill" onClick={() => setChatMessages([])}>New chat</button>
-                <button className="icon-button" onClick={() => setChatOpen(false)} aria-label="Close chat"><X size={18} /></button>
-              </div>
-            </header>
-
-            <div className="chat-thread" ref={threadRef}>
-              {!chatMessages.length && (
-                <div className="chat-empty">
-                  <LlamaMark />
-                  <h2>What are you working on?</h2>
-                  <p>Your conversation stays on this machine when Ollama is running. This website is the workspace.</p>
-                  <div className="starter-row">
-                    {starterPrompts.map((item) => (
-                      <button key={item} className="starter-chip" onClick={() => askNexus(item)}>{item}</button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {chatMessages.map((message, index) => (
-                <article className={`chat-turn ${message.role}`} key={`${message.role}-${index}`}>
-                  <span className="chat-avatar">{message.role === 'user' ? 'You' : 'N'}</span>
-                  <div className="chat-bubble">
-                    <small>{message.role === 'user' ? 'You' : chatModel}</small>
-                    <p>{message.content}</p>
-                  </div>
-                </article>
-              ))}
-              {sending && (
-                <div className="thinking" aria-live="polite">
-                  <i></i><i></i><i></i>
-                </div>
-              )}
-            </div>
-
-            <form className="chat-composer" onSubmit={(event) => { event.preventDefault(); askNexus() }}>
-              <textarea
-                ref={inputRef}
-                value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' && !event.shiftKey) {
-                    event.preventDefault()
-                    askNexus()
-                  }
-                }}
-                placeholder="Message your local model..."
-                rows={1}
-              />
-              <button className="send-chat" disabled={!prompt.trim() || sending} aria-label="Send message"><Send size={16} /></button>
-            </form>
-            <p className="chat-hint">{online ? 'Ollama connected · private by default' : 'Website preview · run locally for live models'} · Enter to send</p>
-          </div>
+        </        {user && user.emailVerified && chatOpen && (
+          <ChatProvider>
+            <ChatShell />
+          </ChatProvider>
+        )}>
         )}
       </div>
     </>
