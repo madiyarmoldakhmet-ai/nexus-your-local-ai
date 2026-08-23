@@ -1,6 +1,7 @@
 // src/firebaseConfig.js
 // Replace placeholder values with your Firebase project credentials.
 import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCUawwqj-pnaQzpjzGL3AsDorG9y7Ci4Ns",
