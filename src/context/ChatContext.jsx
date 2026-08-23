@@ -97,6 +97,7 @@ export const ChatProvider = ({ children }) => {
         isNewGroupModalOpen,
         openNewGroupModal: () => setIsNewGroupModalOpen(true),
         closeNewGroupModal: () => setIsNewGroupModalOpen(false),
+        currentUser: user,
       }}
     >
       {children}
