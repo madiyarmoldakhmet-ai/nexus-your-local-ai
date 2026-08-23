@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Check, Copy, Menu, Moon, Search, Send, Sun, X } from 'lucide-react'
+import { ArrowRight, Check, Copy, Menu, Moon, Search, Send, Sun, X, LogOut, User as UserIcon } from 'lucide-react'
 import './App.css'
 import { useAuth } from './context/AuthContext'
 import { ChatProvider } from './context/ChatContext';
 import ChatShell from './components/ChatShell';
+import AuthModal from './components/AuthModal';
 
 const knownModels = ['llava:latest', 'qwen2.5:14b', 'gpt-oss:20b', 'llama3.2:latest', 'qwen2.5-coder:14b', 'qwen3:8b', 'llama3.1:8b', 'qwen2.5-coder:7b']
 const curlCommand = 'curl -fsSL https://ollama.com/install.sh | sh'
@@ -34,13 +35,15 @@ function demoReply(content, model) {
 }
 
 function App() {
-  const { user } = useAuth();
+  const { user, initializing, logout } = useAuth();
   const [models, setModels] = useState(knownModels.map((name) => ({ name })))
   const [online, setOnline] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [copied, setCopied] = useState(false)
   const [prompt, setPrompt] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
+  const [messengerOpen, setMessengerOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const [sending, setSending] = useState(false)
   const [theme, setTheme] = useState(readTheme)
   const [chatMessages, setChatMessages] = useState([])
@@ -109,10 +112,18 @@ function App() {
     if (seed) setPrompt(seed)
   }
 
+  const openMessenger = () => {
+    if (!user) {
+      setAuthModalOpen(true);
+    } else {
+      setMessengerOpen(true);
+    }
+  }
+
   return (
     <>
-      {!user ? (<AuthModal />) : (!user.emailVerified && (<div className="email-banner" style={{ background: '#fffae6', color: '#8a6d3b', padding: '1rem', textAlign: 'center' }}>Please verify your email address to access the application. Check your inbox for a verification link.</div>))}
-      {user && user.emailVerified && (<div className="site-shell">
+      {authModalOpen && !user && <AuthModal onClose={() => setAuthModalOpen(false)} />}
+      <div className="site-shell">
         <header className="primary-nav">
           <a className="brand" href="#top" aria-label="Nexus home">
             <LlamaMark small />
@@ -123,6 +134,16 @@ function App() {
             <a href="#automate" onClick={() => setMobileNav(false)}>Docs</a>
             <a href="#pricing" onClick={() => setMobileNav(false)}>Pricing</a>
             <a href="#faq" onClick={() => setMobileNav(false)}>FAQ</a>
+            <button
+              className="pill secondary"
+              style={{ width: '100%', justifyContent: 'center', margin: '8px 0' }}
+              onClick={() => {
+                setMobileNav(false);
+                openMessenger();
+              }}
+            >
+              Open Messenger
+            </button>
             <button className="mobile-close" onClick={() => setMobileNav(false)} aria-label="Close menu"><X size={19} /></button>
           </nav>
           <div className="nav-tools">
@@ -133,7 +154,21 @@ function App() {
             <button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle dark mode">
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            <a className="sign-in" href="#chat" onClick={(event) => { event.preventDefault(); openChat() }}>Sign in</a>
+            <button className="pill secondary messenger-nav-btn" onClick={openMessenger}>
+              Messenger
+            </button>
+            {user ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--body)' }}>{user.email}</span>
+                <button className="pill secondary" onClick={logout} title="Sign Out">
+                  <LogOut size={14} /> Log out
+                </button>
+              </div>
+            ) : (
+              <button className="sign-in" style={{ background: 'none', border: 'none', cursor: 'pointer' }} onClick={() => setAuthModalOpen(true)}>
+                Sign in
+              </button>
+            )}
             <button className="pill primary" onClick={() => openChat()}>Open Nexus</button>
           </div>
           <button className="menu-toggle" onClick={() => setMobileNav(true)} aria-label="Open menu"><Menu size={21} /></button>
@@ -153,6 +188,9 @@ function App() {
             </div>
             <div className="hero-actions">
               <button className="pill primary" onClick={() => openChat()}>Start building <ArrowRight size={15} /></button>
+              <button className="pill secondary" onClick={openMessenger}>
+                Launch Messenger <ArrowRight size={15} />
+              </button>
               <a className="text-link" href="#models">Explore your models <ArrowRight size={15} /></a>
             </div>
             <p className="availability">
@@ -280,10 +318,102 @@ function App() {
             <a href="#top">Privacy</a>
           </nav>
         </footer>
-        {user && user.emailVerified && chatOpen && (<ChatProvider><ChatShell /></ChatProvider>)}
+
+        {chatOpen && (
+          <div className="chat-workspace">
+            <header className="chat-nav">
+              <a className="brand" href="#top" onClick={() => setChatOpen(false)}>
+                <LlamaMark small />
+                <span>nexus</span>
+              </a>
+              <div className="chat-status is-online">
+                <i></i> {online ? 'Ollama online' : 'Ollama offline'}
+              </div>
+              <div className="chat-nav-tools">
+                <div className="model-pill">
+                  <select value={chatModel} onChange={(e) => setChatModel(e.target.value)}>
+                    {models.map((m) => (
+                      <option key={m.name} value={m.name}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button className="icon-button" onClick={() => setChatOpen(false)} aria-label="Close chat">
+                  <X size={18} />
+                </button>
+              </div>
+            </header>
+
+            <div className="chat-thread" ref={threadRef}>
+              {chatMessages.length === 0 ? (
+                <div className="chat-empty">
+                  <LlamaMark />
+                  <h2>What would you like to build?</h2>
+                  <p>Run inferences completely locally on your hardware.</p>
+                  <div className="starter-row">
+                    {starterPrompts.map((s) => (
+                      <button key={s} className="starter-chip" onClick={() => askNexus(s)}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                chatMessages.map((msg, i) => (
+                  <div key={i} className={`chat-turn ${msg.role}`}>
+                    <div className="chat-avatar">{msg.role === 'user' ? 'You' : 'AI'}</div>
+                    <div className="chat-bubble">
+                      <small>{msg.role === 'user' ? 'You' : chatModel}</small>
+                      <p>{msg.content}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+              {sending && (
+                <div className="thinking">
+                  <i></i><i></i><i></i>
+                </div>
+              )}
+            </div>
+
+            <form
+              className="chat-composer"
+              onSubmit={(e) => {
+                e.preventDefault()
+                askNexus()
+              }}
+            >
+              <textarea
+                ref={inputRef}
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    askNexus()
+                  }
+                }}
+                placeholder={`Ask ${chatModel}...`}
+                rows={1}
+              />
+              <button className="send-chat" type="submit" disabled={!prompt.trim() || sending}>
+                <Send size={16} />
+              </button>
+            </form>
+            <div className="chat-hint">Running directly on local hardware via Ollama.</div>
+          </div>
+        )}
+
+        {user && messengerOpen && (
+          <ChatProvider>
+            <ChatShell onClose={() => setMessengerOpen(false)} />
+          </ChatProvider>
+        )}
       </div>
     </>
   )
 }
 
 export default App
+

@@ -1,70 +1,95 @@
 import React, { useState } from 'react';
+import { X, Users, AlertCircle } from 'lucide-react';
 import { useChat } from '../context/ChatContext';
 
 const NewGroupModal = ({ onClose }) => {
   const { createGroupChat } = useChat();
   const [name, setName] = useState('');
-  const [members, setMembers] = useState(''); // comma-separated UIDs
+  const [members, setMembers] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleCreate = async () => {
-    if (!name.trim()) return;
-    const memberUids = members.split(',').map((uid) => uid.trim()).filter(Boolean);
-    await createGroupChat(name.trim(), memberUids);
-    onClose();
+  const handleCreate = async (e) => {
+    if (e) e.preventDefault();
+    if (!name.trim() || loading) return;
+    const memberEmails = members.split(/[,;\n]+/).map((e) => e.trim()).filter(Boolean);
+    setError('');
+    setLoading(true);
+    try {
+      await createGroupChat(name.trim(), memberEmails);
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Failed to create group');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      className="modal-overlay"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'rgba(0,0,0,0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        className="modal"
-        style={{
-          background: '#fff',
-          padding: '1rem',
-          borderRadius: '8px',
-          width: '320px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>Create Group Chat</h3>
-        <input
-          type="text"
-          placeholder="Group name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          style={{ width: '100%', marginBottom: '0.5rem', padding: '0.4rem' }}
-        />
-        <textarea
-          placeholder="Member UIDs (comma separated)"
-          value={members}
-          onChange={(e) => setMembers(e.target.value)}
-          rows={3}
-          style={{ width: '100%', marginBottom: '0.5rem', padding: '0.4rem' }}
-        />
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ marginRight: '0.5rem' }}>
-            Cancel
-          </button>
-          <button onClick={handleCreate} style={{ background: '#4a90e2', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.4rem 0.8rem' }}>
-            Create
-          </button>
-        </div>
+    <div className="modal-overlay" role="dialog" aria-modal="true">
+      <div className="modal-content">
+        <h2 className="modal-title">Create Group Chat</h2>
+        <p style={{ color: 'var(--body)', fontSize: '14px', marginTop: '-12px', marginBottom: '20px' }}>
+          Create a collaboration channel with multiple members.
+        </p>
+
+        {error && (
+          <div className="error-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <AlertCircle size={15} /> {error}
+          </div>
+        )}
+
+        <form onSubmit={handleCreate} className="auth-form">
+          <label className="text-input">
+            <span>Group Name</span>
+            <input
+              type="text"
+              placeholder="e.g. AI Engineering Core"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
+          </label>
+
+          <label className="text-input">
+            <span>Member Emails (comma separated)</span>
+            <textarea
+              placeholder="alex@example.com, john@example.com"
+              value={members}
+              onChange={(e) => setMembers(e.target.value)}
+              rows={3}
+              style={{
+                borderRadius: '12px',
+                border: '1px solid var(--hairline-strong)',
+                background: 'var(--soft)',
+                color: 'var(--ink)',
+                padding: '10px 14px',
+                fontFamily: 'inherit',
+                fontSize: '14px',
+                resize: 'none',
+                outline: 'none',
+              }}
+            />
+          </label>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
+            <button type="button" className="pill secondary" onClick={onClose}>
+              Cancel
+            </button>
+            <button type="submit" className="pill primary" disabled={loading || !name.trim()}>
+              {loading ? 'Creating...' : 'Create Group'}
+            </button>
+          </div>
+        </form>
+
+        <button type="button" className="icon-button close-modal" onClick={onClose} aria-label="Close">
+          <X size={18} />
+        </button>
       </div>
     </div>
   );
 };
 
 export default NewGroupModal;
+

@@ -1,31 +1,98 @@
 import React from 'react';
 import { useChat } from '../context/ChatContext';
-import './ChatList.css'; // optional styling
+import { MessageSquarePlus, Users, User } from 'lucide-react';
 
 const ChatList = () => {
-  const { chats, selectedChatId, selectChat } = useChat();
+  const {
+    chats,
+    selectedChatId,
+    selectChat,
+    usersMap,
+    currentUser,
+    openPrivateChatModal,
+    openNewGroupModal,
+  } = useChat();
+
+  const getChatTitle = (chat) => {
+    if (chat.isGroup) return chat.name || 'Group Chat';
+    const otherUid = chat.participants?.find((uid) => uid !== currentUser?.uid);
+    if (otherUid && usersMap[otherUid]?.email) {
+      return usersMap[otherUid].displayName || usersMap[otherUid].email;
+    }
+    const otherEmail = chat.participantEmails?.find((e) => e !== currentUser?.email?.toLowerCase());
+    if (otherEmail) return otherEmail;
+    return 'Direct Chat';
+  };
+
+  const getChatSubtitle = (chat) => {
+    if (chat.lastMessage) return chat.lastMessage;
+    if (chat.isGroup) return `${chat.participants?.length || 0} members`;
+    return 'No messages yet';
+  };
 
   return (
-    <div className="chat-list" style={{ width: '250px', borderRight: '1px solid #e0e0e0', overflowY: 'auto' }}>
-      <h3 style={{ padding: '0.5rem', margin: 0, background: '#f5f5f5' }}>Chats</h3>
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-        {chats.map((chat) => (
-          <li
-            key={chat.id}
-            onClick={() => selectChat(chat.id)}
-            style={{
-              padding: '0.75rem',
-              cursor: 'pointer',
-              background: chat.id === selectedChatId ? '#e6f7ff' : 'transparent',
-            }}
+    <div className="messenger-sidebar">
+      <div className="messenger-sidebar-header">
+        <div>
+          <h3>Messages</h3>
+          <span className="messenger-count">{chats.length} conversations</span>
+        </div>
+        <div className="messenger-header-actions">
+          <button
+            className="icon-button"
+            onClick={openPrivateChatModal}
+            title="New Direct Message"
+            aria-label="New Direct Message"
           >
-            {chat.isGroup ? chat.name : chat.participants?.join(', ')}
-          </li>
-        ))}
-        {chats.length === 0 && <li style={{ padding: '0.75rem' }}>No chats yet.</li>}
-      </ul>
+            <User size={16} />
+          </button>
+          <button
+            className="icon-button"
+            onClick={openNewGroupModal}
+            title="New Group Chat"
+            aria-label="New Group Chat"
+          >
+            <Users size={16} />
+          </button>
+        </div>
+      </div>
+
+      <div className="messenger-chat-items">
+        {chats.length === 0 ? (
+          <div className="messenger-empty-state">
+            <p>No conversations yet.</p>
+            <button className="pill secondary" onClick={openPrivateChatModal} style={{ marginTop: '8px' }}>
+              Start a chat
+            </button>
+          </div>
+        ) : (
+          chats.map((chat) => {
+            const isSelected = chat.id === selectedChatId;
+            const title = getChatTitle(chat);
+            const sub = getChatSubtitle(chat);
+            const initial = (title[0] || 'C').toUpperCase();
+
+            return (
+              <div
+                key={chat.id}
+                onClick={() => selectChat(chat.id)}
+                className={`messenger-chat-row ${isSelected ? 'active' : ''}`}
+              >
+                <div className="messenger-row-avatar">
+                  {chat.isGroup ? <Users size={15} /> : initial}
+                </div>
+                <div className="messenger-row-info">
+                  <div className="messenger-row-title">{title}</div>
+                  <div className="messenger-row-sub">{sub}</div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 };
 
 export default ChatList;
+

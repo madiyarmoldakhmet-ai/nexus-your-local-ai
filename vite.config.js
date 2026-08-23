@@ -12,6 +12,6 @@ export default defineConfig({
       },
     },
   ],
-  base: '/nexus-your-local-ai/',
+  base: '/',
   server: { proxy: { '/api': 'http://localhost:3001' } },
 })

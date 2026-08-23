@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
+import { Send } from 'lucide-react';
 import { useChat } from '../context/ChatContext';
 
 const MessageInput = () => {
   const { sendMessage, selectedChatId } = useChat();
   const [text, setText] = useState('');
 
-  const handleSend = async () => {
+  const handleSend = async (e) => {
+    if (e) e.preventDefault();
     if (!text.trim() || !selectedChatId) return;
-    await sendMessage(selectedChatId, text.trim());
+    const content = text.trim();
     setText('');
+    await sendMessage(selectedChatId, content);
   };
 
-  const handleKeyPress = async (e) => {
+  const handleKeyDown = async (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       await handleSend();
@@ -19,23 +22,27 @@ const MessageInput = () => {
   };
 
   return (
-    <div style={{ display: 'flex', padding: '0.5rem', borderTop: '1px solid #e0e0e0' }}>
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyPress={handleKeyPress}
-        placeholder="Type a message..."
-        rows={1}
-        style={{ flex: 1, resize: 'none', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
-      />
-      <button
-        onClick={handleSend}
-        style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem', background: '#000', color: '#fff', border: 'none', borderRadius: '9999px' }}
-      >
-        Send
-      </button>
-    </div>
+    <form className="messenger-input-area" onSubmit={handleSend}>
+      <div className="messenger-composer">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Write a message... (Enter to send)"
+          rows={1}
+        />
+        <button
+          type="submit"
+          className="messenger-send-btn"
+          disabled={!text.trim() || !selectedChatId}
+          aria-label="Send message"
+        >
+          <Send size={15} />
+        </button>
+      </div>
+    </form>
   );
 };
 
 export default MessageInput;
+

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import { signUp, signIn } from '../firebaseAuth';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,7 +28,7 @@ const AuthModal = ({ onClose }) => {
 
   // If the user is already logged in, close the modal automatically
   if (user) {
-    onClose();
+    if (onClose) onClose();
     return null;
   }
 
@@ -35,7 +36,7 @@ const AuthModal = ({ onClose }) => {
     <div className="modal-overlay" role="dialog" aria-modal="true">
       <div className="modal-content">
         <h2 className="modal-title">{mode === 'signin' ? 'Sign In' : 'Create Account'}</h2>
-        {error && <p className="error-text">{error}</p>
+        {error && <p className="error-text">{error}</p>}
         <form onSubmit={handleSubmit} className="auth-form">
           <label className="text-input">
             <span>Email</span>
