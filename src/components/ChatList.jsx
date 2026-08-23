@@ -19,7 +19,7 @@ const ChatList = () => {
               background: chat.id === selectedChatId ? '#e6f7ff' : 'transparent',
             }}
           >
-            {chat.isGroup ? chat.name : chat.participants?.filter((uid) => uid !== chat.currentUserUid)[0]}
+            {chat.isGroup ? chat.name : chat.participants?.join(', ')}
           </li>
         ))}
         {chats.length === 0 && <li style={{ padding: '0.75rem' }}>No chats yet.</li>}
