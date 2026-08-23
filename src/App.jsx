@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, Copy, Menu, Moon, Search, Send, Sun, X } from 'lucide-react'
 import './App.css'
 import { useAuth } from './context/AuthContext'
-import AuthModal from './components/AuthModal'
+import { ChatProvider } from './context/ChatContext';
+import ChatShell from './components/ChatShell';
 
 const knownModels = ['llava:latest', 'qwen2.5:14b', 'gpt-oss:20b', 'llama3.2:latest', 'qwen2.5-coder:14b', 'qwen3:8b', 'llama3.1:8b', 'qwen2.5-coder:7b']
 const curlCommand = 'curl -fsSL https://ollama.com/install.sh | sh'
