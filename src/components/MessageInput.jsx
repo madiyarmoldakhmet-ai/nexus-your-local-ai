@@ -7,7 +7,7 @@ const MessageInput = () => {
 
   const handleSend = async () => {
     if (!text.trim() || !selectedChatId) return;
-    await sendMessage(text.trim());
+    await sendMessage(selectedChatId, text.trim());
     setText('');
   };
 
@@ -30,7 +30,7 @@ const MessageInput = () => {
       />
       <button
         onClick={handleSend}
-        style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem', background: '#4a90e2', color: '#fff', border: 'none', borderRadius: '4px' }}
+        style={{ marginLeft: '0.5rem', padding: '0.5rem 1rem', background: '#000', color: '#fff', border: 'none', borderRadius: '9999px' }}
       >
         Send
       </button>
