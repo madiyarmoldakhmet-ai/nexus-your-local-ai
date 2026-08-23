@@ -10,6 +10,7 @@ export const ChatProvider = ({ children }) => {
   const [chats, setChats] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [isNewGroupModalOpen, setIsNewGroupModalOpen] = useState(false);
 
   // Load chats for the current user
   useEffect(() => {
@@ -93,6 +94,8 @@ export const ChatProvider = ({ children }) => {
         sendMessage,
         createPrivateChat,
         createGroupChat,
+        isNewGroupModalOpen,
+        setIsNewGroupModalOpen,
       }}
     >
       {children}
@@ -101,4 +104,3 @@ export const ChatProvider = ({ children }) => {
 };
 
 export const useChat = () => useContext(ChatContext);
-
