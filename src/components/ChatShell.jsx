@@ -6,7 +6,7 @@ import NewGroupModal from './NewGroupModal';
 import { useChat } from '../context/ChatContext';
 
 const ChatShell = () => {
-  const { selectedChatId } = useChat();
+  const { selectedChatId, isNewGroupModalOpen, openNewGroupModal, closeNewGroupModal } = useChat();
   const isChatOpen = !!selectedChatId;
 
   return (
@@ -22,7 +22,10 @@ const ChatShell = () => {
           <p>Select or create a chat to start messaging.</p>
         </div>
       )}
-      {/* NewGroupModal could be conditionally rendered via state in ChatContext */}
+      <button onClick={openNewGroupModal} style={{ position: 'absolute', top: 10, right: 10 }}>
+        New Group
+      </button>
+      {isNewGroupModalOpen && <NewGroupModal onClose={closeNewGroupModal} />}
     </div>
   );
 };
