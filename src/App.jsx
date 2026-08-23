@@ -110,8 +110,8 @@ function App() {
 
   return (
     <>
-      {!user && <AuthModal />}
-      <div className="site-shell">
+      {!user ? (<AuthModal />) : (!user.emailVerified && (<div className="email-banner" style={{ background: '#fffae6', color: '#8a6d3b', padding: '1rem', textAlign: 'center' }}>Please verify your email address to access the application. Check your inbox for a verification link.</div>))}
+      {user && user.emailVerified && (<div className="site-shell">
         <header className="primary-nav">
           <a className="brand" href="#top" aria-label="Nexus home">
             <LlamaMark small />
