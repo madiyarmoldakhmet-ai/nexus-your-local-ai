@@ -3,12 +3,13 @@
 import { initializeApp } from 'firebase/app';
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCUawwqj-pnaQzpjzGL3AsDorG9y7Ci4Ns",
+  authDomain: "nexus-ai-3bbba.firebaseapp.com",
+  projectId: "nexus-ai-3bbba",
+  storageBucket: "nexus-ai-3bbba.firebasestorage.app",
+  messagingSenderId: "23644631447",
+  appId: "1:23644631447:web:c0bbf00dbf276885e8d4d2",
+  measurementId: "G-77DBKKVYM1"
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);
