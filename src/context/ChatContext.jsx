@@ -1,98 +1,88 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy, doc, setDoc, getDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { getFirestore, collection, query, where, onSnapshot, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { useAuth } from './AuthContext';
 
-const ChatContext = createContext();
-
-export const useChat = () => useContext(ChatContext);
+const ChatContext = createContext(null);
 
 export const ChatProvider = ({ children }) => {
   const { user } = useAuth();
   const [chats, setChats] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Listen to user's chats
+  // Load chats where the current user is a participant
   useEffect(() => {
-    if (!user) return;
+    if (!user?.uid) {
+      setChats([]);
+      return;
+    }
     const chatsRef = collection(db, 'chats');
     const q = query(chatsRef, where('participants', 'array-contains', user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const chatList = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-      setChats(chatList);
-      setLoading(false);
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setChats(data);
     });
-    return unsubscribe;
+    return () => unsub();
   }, [user]);
 
-  // Listen to messages of the selected chat
+  // Load messages for the selected chat
   useEffect(() => {
     if (!selectedChatId) {
       setMessages([]);
       return;
     }
-    const messagesRef = collection(db, 'chats', selectedChatId, 'messages');
-    const q = query(messagesRef, orderBy('createdAt'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-      setMessages(msgs);
+    const msgsRef = collection(db, `chats/${selectedChatId}/messages`);
+    const q = query(msgsRef, orderBy('createdAt'));
+    const unsub = onSnapshot(q, (snap) => {
+      const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMessages(data);
     });
-    return unsubscribe;
+    return () => unsub();
   }, [selectedChatId]);
 
-  const sendMessage = useCallback(async (chatId, content) => {
-    if (!user) return;
-    const messagesRef = collection(db, 'chats', chatId, 'messages');
-    await addDoc(messagesRef, {
-      senderId: user.uid,
-      content,
-      createdAt: serverTimestamp(),
-    });
-  }, [user]);
-
-  const createPrivateChat = useCallback(async (otherUid) => {
-    if (!user) return null;
-    // Check for existing private chat between the two participants
-    const existing = chats.find(
-      (c) => !c.isGroup && c.participants.includes(otherUid) && c.participants.includes(user.uid)
-    );
-    if (existing) {
-      setSelectedChatId(existing.id);
-      return existing.id;
-    }
-    const chatDoc = await addDoc(collection(db, 'chats'), {
-      participants: [user.uid, otherUid],
+  const createPrivateChat = async (otherUid) => {
+    if (!user?.uid) return;
+    const chatRef = await addDoc(collection(db, 'chats'), {
       isGroup: false,
+      participants: [user.uid, otherUid],
       createdAt: serverTimestamp(),
     });
-    setSelectedChatId(chatDoc.id);
-    return chatDoc.id;
-  }, [user, chats]);
+    setSelectedChatId(chatRef.id);
+  };
 
-  const createGroupChat = useCallback(async (name) => {
-    if (!user) return null;
-    const chatDoc = await addDoc(collection(db, 'chats'), {
+  const createGroupChat = async (name) => {
+    if (!user?.uid) return;
+    const chatRef = await addDoc(collection(db, 'chats'), {
+      isGroup: true,
       name,
       participants: [user.uid],
-      isGroup: true,
       createdAt: serverTimestamp(),
     });
-    setSelectedChatId(chatDoc.id);
-    return chatDoc.id;
-  }, [user]);
+    setSelectedChatId(chatRef.id);
+  };
+
+  const sendMessage = async (chatId, text) => {
+    if (!user?.uid) return;
+    const msgsCol = collection(db, `chats/${chatId}/messages`);
+    await addDoc(msgsCol, {
+      uid: user.uid,
+      text,
+      createdAt: serverTimestamp(),
+    });
+  };
 
   const value = {
     chats,
     selectedChatId,
     setSelectedChatId,
     messages,
-    sendMessage,
     createPrivateChat,
     createGroupChat,
-    loading,
+    sendMessage,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 };
+
+export const useChat = () => useContext(ChatContext);
